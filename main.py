@@ -31,7 +31,8 @@ class Example(QMainWindow):
 
     def smile(self, qp):
         qp.setBrush(QColor(255, 255, 0))
-        qp.drawEllipse(100, 100, randrange(300), randrange(300))
+        x = randrange(300)
+        qp.drawEllipse(100, 100, x, x)
 
 
 if __name__ == '__main__':
