@@ -4,7 +4,7 @@ import pygame
 import data
 from pygame.sprite import Sprite
 from data import all_sprites, trees, clouds, start_sprites, play_sprites
-
+import json
 button_pressed = False
 GRAVITY = 1
 
@@ -364,11 +364,27 @@ def main():
     cursor.image = cursor_image
     cursor.rect = cursor_image.get_rect()
 
+    def take_info():
+        file = open('information')
+        record = file.readline()[7:]
+        heapify = file.readline()[8:]
+        heapify = int(heapify)
+        with open('information', 'w') as info_file:
+            if round(count.count) > int(record):
+                info_file.write(f'record={round(count.count)}')
+                info_file.write('\n')
+                info_file.write(f'heapify={str(heapify)}')
+            else:
+                info_file.write(f'record={round(record)}')
+                info_file.write('\n')
+                info_file.write(f'heapify={str(heapify)}')
+
     running = True
     while running:
         pressed = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                take_info()
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 create_particles(pygame.mouse.get_pos())
