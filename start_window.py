@@ -366,18 +366,24 @@ def main():
 
     def take_info():
         file = open('information')
-        record = file.readline()[7:]
-        heapify = file.readline()[8:]
-        heapify = int(heapify)
+        record = int(file.readline()[7:])
+        heapify = int(file.readline()[8:])
+        money = int(file.readline()[6:])
+        heapify += 1
+        money += round(count.count // 100)
         with open('information', 'w') as info_file:
-            if round(count.count) > int(record):
+            if round(count.count) > record:
                 info_file.write(f'record={round(count.count)}')
                 info_file.write('\n')
                 info_file.write(f'heapify={str(heapify)}')
+                info_file.write('\n')
+                info_file.write(f'money={str(money)}')
             else:
                 info_file.write(f'record={round(record)}')
                 info_file.write('\n')
                 info_file.write(f'heapify={str(heapify)}')
+                info_file.write('\n')
+                info_file.write(f'money={str(money)}')
 
     running = True
     while running:
