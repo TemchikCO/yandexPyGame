@@ -3,10 +3,10 @@ import random
 import pygame
 import data
 from pygame.sprite import Sprite
-from data import all_sprites, trees, clouds, start_sprites, play_sprites
-import json
+from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites
 button_pressed = False
 GRAVITY = 1
+finish_pressed = False
 
 
 class Particle(pygame.sprite.Sprite):
@@ -149,7 +149,8 @@ class AnimatedSprite(StartSprite):
         super().__init__(group, surface, x, y)
         self.frames = []
         self.file_name = file_name
-        for i in range(15):
+        self.count = 15
+        for i in range(self.count):
             animate_hero_image1 = data.load_image(f'{self.file_name}\{i + 1}.png', -1)
             animate_hero_image = pygame.transform.scale(animate_hero_image1, (96, 111))
             self.frames.append(animate_hero_image)
@@ -176,7 +177,6 @@ class Raner_hero(StartSprite):
         self.jumping_frames_back = []
         self.down_frames = []
         self.active_frames = []
-        self.frames = []
         self.jump_force = 150
         self.down_flag = False
         for i in range(8):
@@ -204,7 +204,8 @@ class Raner_hero(StartSprite):
         self.cur_frame = 0
         self.image = surface
 
-    def update(self, ms):
+    def update(self, ms, speed):
+        self.upgrades_per_frame = speed // 72
         self.upgrades_count += 1
         if self.upgrades_count == self.upgrades_per_frame:
             if self.is_grounded():
@@ -300,6 +301,76 @@ class Count(Sprite):
         self.count = self.time * self.koef
 
 
+class Finish_hero(AnimatedSprite):
+    def __init__(self, group, surface, x, y, file_name):
+        super().__init__(group, surface, x, y, file_name)
+        self.count = 2
+        self.file_name = 5
+
+
+class Finish_button(StartButton):
+    def __init__(self, group, surface, x, y):
+        super().__init__(group, surface, x, y)
+
+    def check_click(self, pos):
+        if self.rect.topleft[0] <= pos[0] <= self.rect.bottomright[0]:
+            if self.rect.topleft[1] <= pos[1] <= self.rect.bottomright[1]:
+                global finish_pressed
+                finish_pressed = True
+
+    def update(self, ms):
+        self.y += self.dir_y * ms / 1000
+        if finish_pressed:
+            self.dir_y = self.speed
+
+
+class Finish_window(Sprite):
+    def __init__(self, group, surface, x, y):
+        if group:
+            super().__init__(group)
+        else:
+            super().__init__()
+        self.image = surface
+        self.rect = surface.get_rect()
+        self.x: float = x
+        self.y: float = y
+        self.speed = 1500
+        self.dir_y: float = 0
+        self.final_y_position = 0
+
+    def update(self, ms):
+        self.y += self.dir_y * ms / 1000
+        if finish_pressed and self.y < self.final_y_position:
+            self.dir_y = self.speed
+        else:
+            self.dir_y = 0
+
+    def draw(self, screen):
+        self.rect.topleft = self.x, self.y
+        screen.blit(self.image, self.rect)
+
+
+class Finish_text(Finish_window):
+    def __init__(self, group, surface, x, y):
+        super().__init__(group, surface, x, y)
+        self.final_y_position = 150
+        self.text = f"Вы проиграли и попали в Россию"
+
+    def draw(self, screen, record, count):
+        font = pygame.font.Font(None, 50)
+        text = font.render(self.text, True, 'green')
+        count_text = font.render(f'Вы набрали: {str(count)} очков', True, 'green')
+        if count >= record[0]:
+            record_text = font.render(f'Вы установили новый рекорд!!!', True, 'green')
+        else:
+            record_text = font.render(f'Вам не хватило до рекорда рекорд: {str(record[0] - count)}', True, 'green')
+        money_text = font.render(f'Ваши деньги: {str(record[1])}', True, 'green')
+        screen.blit(text, (self.x, self.y))
+        screen.blit(count_text, (self.x + 170, self.y + 150))
+        screen.blit(record_text, (self.x + 100, self.y + 70))
+        screen.blit(money_text, (self.x + 170, self.y + 100))
+
+
 def main():
     clock = pygame.time.Clock()
     FPS = 120
@@ -312,10 +383,22 @@ def main():
     ground = StartSprite(all_sprites, ground_image, 0, 400)
     ground.add(start_sprites)
 
+    final_image1 = data.load_image("final_image.jpg")
+    final_image = pygame.transform.scale(final_image1, (1200, 700))
+    final = Finish_window(all_sprites, final_image, 0, -700)
+    final.add(final_sprites)
+
+    finish_text = Finish_text(all_sprites, final_image, 300, -550)
+
     start_button_image1 = data.load_image("start_button.png", -1)
     start_button_image = pygame.transform.scale(start_button_image1, (408, 109))
     start_button = StartButton(all_sprites, start_button_image, 390, 530)
     start_button.add(start_sprites)
+
+    finish_button_image1 = data.load_image("start_button.png", -1)
+    finish_button_image = pygame.transform.scale(finish_button_image1, (204, 55))
+    finish_button = Finish_button(all_sprites, finish_button_image, 100, 530)
+    finish_button.add(start_sprites)
 
     cloud_image1 = data.load_image("clouds/1.png", -1)
     cloud_image = pygame.transform.scale(cloud_image1, (200, 150))
@@ -335,15 +418,11 @@ def main():
     tree_image1 = data.load_image("tree_gif/1.png", -1)
     tree_image = pygame.transform.scale(tree_image1, (200, 150))
 
-    tree1 = Tree(all_sprites, tree_image, 0, 252)
-
-    tree2 = Tree(all_sprites, tree_image, 300, 252)
-
-    tree3 = Tree(all_sprites, tree_image, 600, 252)
-
-    tree4 = Tree(all_sprites, tree_image, 900, 252)
-
-    tree5 = Tree(all_sprites, tree_image, 1200, 252)
+    tree = Tree(all_sprites, tree_image, 0, 252)
+    Tree(all_sprites, tree_image, 300, 252)
+    Tree(all_sprites, tree_image, 600, 252)
+    Tree(all_sprites, tree_image, 900, 252)
+    Tree(all_sprites, tree_image, 1200, 252)
 
     avatar_image1 = data.load_image("avatar.png", -1)
     avatar_image = pygame.transform.scale(avatar_image1, (400, 400))
@@ -384,6 +463,7 @@ def main():
                 info_file.write(f'heapify={str(heapify)}')
                 info_file.write('\n')
                 info_file.write(f'money={str(money)}')
+        return [record, money]
 
     running = True
     while running:
@@ -395,6 +475,7 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 create_particles(pygame.mouse.get_pos())
                 start_button.check_click(event.pos)
+                finish_button.check_click(event.pos)
                 if button_pressed:
                     spining_hero.kill()
             if event.type == pygame.MOUSEMOTION:
@@ -415,6 +496,7 @@ def main():
         spining_hero.update()
         avatar.update(clock.tick(FPS))
         start_button.update(clock.tick(FPS))
+        finish_button.update(clock.tick(FPS))
         clouds.update()
         horizontal = int(pressed[pygame.K_d]) - int(pressed[pygame.K_a])
         if avatar.rect.topleft[1] <= -300:
@@ -424,7 +506,7 @@ def main():
         if button_pressed:
             for play_sprite in play_sprites:
                 play_sprite.draw(data.screen)
-                play_sprite.update(clock.tick(FPS))
+                play_sprite.update(clock.tick(FPS), tree.speed)
                 trees.update(clock.tick(FPS), horizontal, ran_hero.down_flag)
             if pressed[pygame.K_s]:
                 ran_hero.down_flag = True
@@ -433,6 +515,13 @@ def main():
             count.update(clock.tick(FPS))
             count.draw(data.screen)
             ran_hero.set_move(horizontal)
+        if finish_pressed:
+            for sprite in start_sprites:
+                sprite.kill()
+            final.draw(data.screen)
+            final.update(clock.tick(FPS))
+            finish_text.update(clock.tick(FPS))
+            finish_text.draw(data.screen, take_info(), count.count)
         all_sprites.update()
         all_sprites.draw(data.screen)
         pygame.display.flip()
