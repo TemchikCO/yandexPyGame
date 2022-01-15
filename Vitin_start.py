@@ -110,7 +110,8 @@ def main():
         record = int(file.readline()[7:])
         heapify = int(file.readline()[8:])
         money = int(file.readline()[6:])
-        money += round(count.count // 100)
+        if not finish_button.finish:
+            money += round(count.count // 100)
         with open('information', 'w') as info_file:
             if round(count.count) > record:
                 info_file.write(f'record={round(count.count)}')
@@ -181,18 +182,22 @@ def main():
             chek_lets(ran_hero)
             generate.do(clock.tick(FPS))
             lets.update(clock.tick(FPS))
+            for i in lets:
+                i.draw(data.screen)
         if finish_button.finish:
             for sprite in start_sprites:
                 if upgrade >= 2:
                     if sprite.rect.bottomleft[1] <= final.rect.bottomleft[1]:
                         sprite.kill()
+            for let in lets:
+                if upgrade >= 2:
+                    if let.rect.bottomleft[1] <= final.rect.bottomleft[1]:
+                        let.kill()
             upgrade += 1
             final.draw(data.screen, take_info(), count.count)
             final.update(clock.tick(FPS))
         all_sprites.update()
         all_sprites.draw(data.screen)
-        for i in lets:
-            i.draw(data.screen)
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()
