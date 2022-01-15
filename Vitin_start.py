@@ -14,7 +14,7 @@ from classes.RanHero import RanHero
 from classes.StartSprite import StartSprite
 from classes.Tree import Tree
 from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, immovablelet, finish_button, \
-    start_button, lets
+    start_button, lets, ground
 
 
 def create_particles(position):
@@ -110,21 +110,30 @@ def main():
         record = int(file.readline()[7:])
         heapify = int(file.readline()[8:])
         money = int(file.readline()[6:])
+        damage = int(file.readline()[7:])
+        count_koef = int(file.readline()[11:])
+        max_bullet_count = int(file.readline()[17:])
+        speed_of_reloading = int(file.readline()[19:])
         if not finish_button.finish:
             money += round(count.count // 100)
         with open('information', 'w') as info_file:
             if round(count.count) > record:
                 info_file.write(f'record={round(count.count)}')
-                info_file.write('\n')
-                info_file.write(f'heapify={str(heapify)}')
-                info_file.write('\n')
-                info_file.write(f'money={str(money)}')
             else:
                 info_file.write(f'record={round(record)}')
-                info_file.write('\n')
-                info_file.write(f'heapify={str(heapify)}')
-                info_file.write('\n')
-                info_file.write(f'money={str(money)}')
+            info_file.write('\n')
+            info_file.write(f'heapify={str(heapify)}')
+            info_file.write('\n')
+            info_file.write(f'money={str(money)}')
+            info_file.write('\n')
+            info_file.write(f'damage={str(damage)}')
+            info_file.write('\n')
+            info_file.write(f'count_koef={str(count_koef)}')
+            info_file.write('\n')
+            info_file.write(f'max_bullet_count={str(max_bullet_count)}')
+            info_file.write('\n')
+            info_file.write(f'speed_of_reloading={str(speed_of_reloading)}')
+
         return [record, money]
 
     upgrade = 1
@@ -171,6 +180,7 @@ def main():
             for play_sprite in play_sprites:
                 play_sprite.draw(data.screen)
                 play_sprite.update(clock.tick(FPS), tree.speed)
+            ground.update(clock.tick(FPS), horizontal, ran_hero.down_flag)
             trees.update(clock.tick(FPS), horizontal, ran_hero.down_flag)
             if pressed[pygame.K_s]:
                 ran_hero.down_flag = True
