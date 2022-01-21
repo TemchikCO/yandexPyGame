@@ -5,6 +5,7 @@ import data
 from pygame.sprite import Sprite
 
 from classes.Avatar import Avatar
+from classes.Health_count import Health_count
 from classes.Particle import Particle
 from classes.AnimatedSprite import AnimatedSprite
 from classes.Cloud import Cloud
@@ -13,8 +14,11 @@ from classes.Finish_window import Finish_window
 from classes.RanHero import RanHero
 from classes.StartSprite import StartSprite
 from classes.Tree import Tree
-from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, immovablelet, finish_button, \
-    start_button, lets, ground
+from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, immovablelet,\
+    lets, ground
+from classes.StartButton import start_button
+from classes.FinishButton import finish_button
+from classes.Upgrade_button import upgrade_button
 
 
 def create_particles(position):
@@ -50,16 +54,13 @@ class Generate:
             self.total_ms = 0
 
 
-def chek_lets(player):
-    return pygame.sprite.spritecollide(player, lets, True)
-
-
 def main():
     clock = pygame.time.Clock()
     FPS = 120
     pygame.display.set_caption('Добро пожаловать в игру')
 
     count = Count(all_sprites)
+    health_count = Health_count(all_sprites)
 
     final_image1 = data.load_image("final_image.jpg")
     final_image = pygame.transform.scale(final_image1, (1200, 700))
@@ -95,6 +96,8 @@ def main():
     spining_hero = AnimatedSprite(all_sprites, image, 0, 370, 'first_hero_animation')
     spining_hero.add(start_sprites)
 
+    image1 = data.load_image("raning_hero/1.png", -1)
+    image = pygame.transform.scale(image1, (100, 100))
     ran_hero = RanHero(all_sprites, image, 0, 370, 'raning_hero')
     ran_hero.add(play_sprites)
 
@@ -133,8 +136,10 @@ def main():
             info_file.write(f'max_bullet_count={str(max_bullet_count)}')
             info_file.write('\n')
             info_file.write(f'speed_of_reloading={str(speed_of_reloading)}')
+        return [record, money, heapify]
 
-        return [record, money]
+    def chek_lets(player):
+        return pygame.sprite.spritecollide(player, lets, True)
 
     upgrade = 1
     running = True
@@ -148,6 +153,7 @@ def main():
                 create_particles(pygame.mouse.get_pos())
                 start_button.check_click(event.pos)
                 finish_button.check_click(event.pos)
+                upgrade_button.check_click(event.pos)
                 if start_button.button_pressed:
                     spining_hero.kill()
             if event.type == pygame.MOUSEMOTION:
@@ -161,7 +167,6 @@ def main():
                 all_sprites.draw(data.screen)
             else:
                 cursor.remove(all_sprites)
-
         data.screen.fill((0, 255, 255))
         for start_sprite in start_sprites:
             start_sprite.draw(data.screen)
@@ -177,6 +182,7 @@ def main():
         if start_button.rect.topleft[1] >= 1200:
             start_button.kill()
         if start_button.button_pressed:
+            upgrade_button.update(clock.tick(FPS))
             for play_sprite in play_sprites:
                 play_sprite.draw(data.screen)
                 play_sprite.update(clock.tick(FPS), tree.speed)
@@ -188,6 +194,8 @@ def main():
                 ran_hero.down_flag = False
             count.update(clock.tick(FPS))
             count.draw(data.screen)
+            health_count.update(clock.tick(FPS), take_info())
+            health_count.draw(data.screen)
             ran_hero.set_move(horizontal)
             chek_lets(ran_hero)
             generate.do(clock.tick(FPS))
@@ -195,17 +203,22 @@ def main():
             for i in lets:
                 i.draw(data.screen)
         if finish_button.finish:
+            ran_hero.speed = 0
             for sprite in start_sprites:
+                sprite.speed = 0
                 if upgrade >= 2:
                     if sprite.rect.bottomleft[1] <= final.rect.bottomleft[1]:
                         sprite.kill()
             for let in lets:
+                let.speed = 0
                 if upgrade >= 2:
                     if let.rect.bottomleft[1] <= final.rect.bottomleft[1]:
                         let.kill()
             upgrade += 1
             final.draw(data.screen, take_info(), count.count)
             final.update(clock.tick(FPS))
+        if upgrade_button.upgrade_flag:
+            upgrade_button.update(clock.tick(FPS))
         all_sprites.update()
         all_sprites.draw(data.screen)
         pygame.display.flip()
