@@ -18,7 +18,7 @@ from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_
     lets, ground
 from classes.StartButton import start_button
 from classes.FinishButton import finish_button
-from classes.Upgrade_button import upgrade_button
+from classes.upgrade_window import upgrade_button, upgrade_window, cancel_upgrade_button, money_count
 
 
 def create_particles(position):
@@ -117,7 +117,7 @@ def main():
         count_koef = int(file.readline()[11:])
         max_bullet_count = int(file.readline()[17:])
         speed_of_reloading = int(file.readline()[19:])
-        if not finish_button.finish:
+        if finish_button.finish:
             money += round(count.count // 100)
         with open('information', 'w') as info_file:
             if round(count.count) > record:
@@ -136,7 +136,7 @@ def main():
             info_file.write(f'max_bullet_count={str(max_bullet_count)}')
             info_file.write('\n')
             info_file.write(f'speed_of_reloading={str(speed_of_reloading)}')
-        return [record, money, heapify]
+        return [record, money, heapify, damage, count_koef, max_bullet_count, speed_of_reloading]
 
     def chek_lets(player):
         return pygame.sprite.spritecollide(player, lets, True)
@@ -154,6 +154,7 @@ def main():
                 start_button.check_click(event.pos)
                 finish_button.check_click(event.pos)
                 upgrade_button.check_click(event.pos)
+                cancel_upgrade_button.check_click(event.pos)
                 if start_button.button_pressed:
                     spining_hero.kill()
             if event.type == pygame.MOUSEMOTION:
@@ -186,7 +187,6 @@ def main():
             for play_sprite in play_sprites:
                 play_sprite.draw(data.screen)
                 play_sprite.update(clock.tick(FPS), tree.speed)
-            ground.update(clock.tick(FPS), horizontal, ran_hero.down_flag)
             trees.update(clock.tick(FPS), horizontal, ran_hero.down_flag)
             if pressed[pygame.K_s]:
                 ran_hero.down_flag = True
@@ -202,6 +202,7 @@ def main():
             lets.update(clock.tick(FPS))
             for i in lets:
                 i.draw(data.screen)
+            ground.update(clock.tick(FPS), horizontal, ran_hero.down_flag)
         if finish_button.finish:
             ran_hero.speed = 0
             for sprite in start_sprites:
@@ -218,7 +219,11 @@ def main():
             final.draw(data.screen, take_info(), count.count)
             final.update(clock.tick(FPS))
         if upgrade_button.upgrade_flag:
-            upgrade_button.update(clock.tick(FPS))
+            upgrade_window.update(clock.tick(FPS))
+            upgrade_window.draw(data.screen)
+            cancel_upgrade_button.draw(data.screen)
+            cancel_upgrade_button.update(clock.tick(FPS))
+            money_count.draw(data.screen, take_info())
         all_sprites.update()
         all_sprites.draw(data.screen)
         pygame.display.flip()
