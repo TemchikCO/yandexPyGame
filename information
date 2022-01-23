@@ -1,7 +1,7 @@
 record=35992
-heapify=1
-money=8696
-damage=1
-count_koef=1
-max_bullet_count=3
-speed_of_reloading=6
+heapify=3..3
+damage=1..1
+count_koef=2..2
+max_bullet_count=1..1
+speed_of_reloading=1..1
+money=0
