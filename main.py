@@ -12,12 +12,12 @@ from classes.Cloud import Cloud
 from classes.Count import Count
 from classes.Finish_window import Finish_window
 from classes.RanHero import RanHero
-from classes.StartSprite import StartSprite
 from classes.Tree import Tree
-from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, immovablelet, \
-    lets, ground, upgrade_buttons
+from classes.Imovablet import ImmovableLet
+from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, lets, ground, upgrade_buttons
 from classes.StartButton import start_button
 from classes.FinishButton import finish_button
+from classes.bird_let import Bird
 from classes.upgrade_window import upgrade_button, upgrade_window, cancel_upgrade_button, money_count
 from classes.Button_for_upgrade import Health_button, Reload_time_button, Bowled_count_button, Damage_button, \
     Count_upgrade_button
@@ -30,40 +30,24 @@ def create_particles(position):
         Particle(position, random.choice(numbers), random.choice(numbers))
 
 
-class ImmovableLet(StartSprite):
-    def __init__(self, speed):
-        super().__init__(lets, immovablelet, 1000, 432)
-        self.mask = pygame.mask.from_surface(self.image)
-        self.speed = speed
-
-    def update(self, ms, speed):
-        self.x -= speed * ms / 1000
-
-    def draw(self, screen):
-        self.rect.topleft = self.x, self.y
-        screen.blit(self.image, self.rect)
-        if self.x < 0 - self.rect.width:
-            self.kill()
-
-
 class Generate:
     def __init__(self):
         self.total_ms = 0
 
-    def do(self, ms, speed):
+    def do(self, ms, speed, score):
         self.total_ms += ms
-        if self.total_ms >= 400:
-            if random.choice([True, False]):
-                lets.add(ImmovableLet(speed))
-                self.total_ms = 0
+        if self.total_ms >= 100000 / speed * 4:
+            self.total_ms = 0
+            if random.choice([True, True, False]):
+                lets.add(ImmovableLet(speed, random.choice([data.immovablelet, data.immovablelet_1])))
+            elif score > 10000 and random.choice([True, False]):
+                lets.add(Bird(random.choice([249, 279, 290]), speed))
 
 
 def chek_lets(player, finish):
     for i in lets:
         if pygame.sprite.collide_mask(i, player):
             finish.finish = True
-
-    # return pygame.sprite.spritecollide(, lets, True)
 
 
 class Music:
@@ -75,7 +59,7 @@ class GameState:
 
 
 def main():
-    game_speed = 1000
+    game_speed = 500
     clock = pygame.time.Clock()
     FPS = 120
     pygame.display.set_caption('Добро пожаловать в игру')
@@ -251,7 +235,7 @@ def main():
         if start_button.rect.topleft[1] >= 1200:
             start_button.kill()
         if start_button.button_pressed:
-            game_speed += 10 * time / 1000
+            game_speed += 20 * time / 1000
 
             upgrade_button.update(time)
             for play_sprite in play_sprites:
@@ -268,7 +252,7 @@ def main():
             health_count.draw(data.screen)
             ran_hero.set_move(horizontal)
             chek_lets(ran_hero, finish_button)
-            generate.do(time, game_speed)
+            generate.do(time, game_speed, count.count)
             lets.update(time, game_speed)
             for i in lets:
                 i.draw(data.screen)
@@ -314,3 +298,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
