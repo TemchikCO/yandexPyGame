@@ -5,6 +5,7 @@ import data
 from pygame.sprite import Sprite
 
 from classes.Avatar import Avatar
+from classes.Bowled import Bowled, control
 from classes.Health_count import Health_count
 from classes.Particle import Particle
 from classes.AnimatedSprite import AnimatedSprite
@@ -14,7 +15,7 @@ from classes.Finish_window import Finish_window
 from classes.RanHero import RanHero
 from classes.Tree import Tree
 from classes.Imovablet import ImmovableLet
-from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, lets, ground, upgrade_buttons
+from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, lets, ground, upgrade_buttons, bowleds
 from classes.StartButton import start_button
 from classes.FinishButton import finish_button
 from classes.bird_let import Bird
@@ -64,7 +65,6 @@ def main():
     FPS = 120
     pygame.display.set_caption('Добро пожаловать в игру')
     time = clock.tick(FPS)
-    money_update = 0
 
     count = Count(all_sprites)
     health_count = Health_count(all_sprites)
@@ -140,8 +140,9 @@ def main():
         speed_of_reloading_level = int(speed_of_reloading_line[1][:-1])
 
         money = int(file.readline()[6:])
-        if finish_button.finish:
+        if finish_button.finish and count.money_update < 1:
             money += round(count.count // 100)
+            count.money_update += 1
         with open('information', 'w') as info_file:
             if round(count.count) > record:
                 info_file.write(f'record={round(count.count)}')
@@ -213,8 +214,13 @@ def main():
                 cursor.rect.topleft = event.pos
             if event.type == pygame.KEYDOWN:
                 if start_button.button_pressed:
-                    if event.key == pygame.K_w or event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                    if event.key == pygame.K_w or event.key == pygame.K_UP:
                         ran_hero.jump()
+                    if event.key == pygame.K_SPACE:
+                        if control.acept_fire:
+                            Bowled(bowleds, data.image_bowled, ran_hero.rect.topleft[0], ran_hero.rect.topleft[1],
+                                   ran_hero)
+                            control.bowlet_count += 1
             if pygame.mouse.get_focused():
                 cursor.add(all_sprites)
                 all_sprites.draw(data.screen)
@@ -236,11 +242,24 @@ def main():
             start_button.kill()
         if start_button.button_pressed:
             game_speed += 20 * time / 1000
-
+            Health_button.kill()
+            Reload_time_button.kill()
+            Bowled_count_button.kill()
+            Damage_button.kill()
+            Count_upgrade_button.kill()
+            cancel_upgrade_button.kill()
+            upgrade_window.kill()
+            money_count.kill()
             upgrade_button.update(time)
             for play_sprite in play_sprites:
                 play_sprite.draw(data.screen)
                 play_sprite.update(time, tree.speed)
+            for bowled in bowleds:
+                bowled.update(time)
+                bowled.draw(data.screen)
+            control.update(take_info(), time)
+            control.draw(data.screen)
+            print(control.acept_fire, control.bowlet_count)
             trees.update(time, horizontal, ran_hero.down_flag)
             if pressed[pygame.K_s]:
                 ran_hero.down_flag = True
@@ -298,4 +317,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
