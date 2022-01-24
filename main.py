@@ -15,7 +15,8 @@ from classes.Finish_window import Finish_window
 from classes.RanHero import RanHero
 from classes.Tree import Tree
 from classes.Imovablet import ImmovableLet
-from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, lets, ground, upgrade_buttons, bowleds
+from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites,\
+    lets, ground, upgrade_buttons, bowleds
 from classes.StartButton import start_button
 from classes.FinishButton import finish_button
 from classes.bird_let import Bird
@@ -128,7 +129,7 @@ def main():
         damage_level = int(damage_line[1][:-1])
 
         count_koef_line = file.readline()[11:].split('..')
-        count_koef = int(count_koef_line[0])
+        count_koef = float(count_koef_line[0])
         count_koef_level = int(count_koef_line[1][:-1])
 
         max_bullet_count_line = file.readline()[17:].split('..')
@@ -163,7 +164,7 @@ def main():
             info_file.write('\n')
             info_file.write(f'damage={str(damage)}..{damage_level}')
             if Count_upgrade_button.upgrade_smth:
-                count_koef += 1
+                count_koef += 0.5
                 count_koef_level += 1
                 money -= Count_upgrade_button.cost - 1000
                 Count_upgrade_button.upgrade_smth = False
@@ -177,7 +178,7 @@ def main():
             info_file.write('\n')
             info_file.write(f'max_bullet_count={str(max_bullet_count)}..{max_bullet_count_level}')
             if Reload_time_button.upgrade_smth:
-                speed_of_reloading += 1
+                speed_of_reloading -= 1
                 speed_of_reloading_level += 1
                 money -= Reload_time_button.cost - 1000
                 Reload_time_button.upgrade_smth = False
@@ -221,6 +222,8 @@ def main():
                             Bowled(bowleds, data.image_bowled, ran_hero.rect.topleft[0], ran_hero.rect.topleft[1],
                                    ran_hero)
                             control.bowlet_count += 1
+                if event.key == pygame.K_ESCAPE:
+                    running = False
             if pygame.mouse.get_focused():
                 cursor.add(all_sprites)
                 all_sprites.draw(data.screen)
@@ -246,26 +249,26 @@ def main():
             Reload_time_button.kill()
             Bowled_count_button.kill()
             Damage_button.kill()
+            koef = Count_upgrade_button.smth
             Count_upgrade_button.kill()
             cancel_upgrade_button.kill()
             upgrade_window.kill()
             money_count.kill()
             upgrade_button.update(time)
+            play_sprites.update(time, tree.speed)
             for play_sprite in play_sprites:
                 play_sprite.draw(data.screen)
-                play_sprite.update(time, tree.speed)
+            bowleds.update(time)
             for bowled in bowleds:
-                bowled.update(time)
                 bowled.draw(data.screen)
             control.update(take_info(), time)
             control.draw(data.screen)
-            print(control.acept_fire, control.bowlet_count)
             trees.update(time, horizontal, ran_hero.down_flag)
             if pressed[pygame.K_s]:
                 ran_hero.down_flag = True
             elif not pressed[pygame.K_s]:
                 ran_hero.down_flag = False
-            count.update(time)
+            count.update(time, koef)
             count.draw(data.screen)
             health_count.update(time, take_info())
             health_count.draw(data.screen)
@@ -296,16 +299,18 @@ def main():
             upgrade_window.draw(data.screen)
             cancel_upgrade_button.draw(data.screen)
             money_count.draw(data.screen, take_info())
-            Health_button.draw(data.screen)
-            Health_button.update(take_info())
-            Reload_time_button.draw(data.screen)
-            Reload_time_button.update(take_info())
-            Bowled_count_button.draw(data.screen)
-            Bowled_count_button.update(take_info())
-            Damage_button.draw(data.screen)
-            Damage_button.update(take_info())
-            Count_upgrade_button.draw(data.screen)
-            Count_upgrade_button.update(take_info())
+            upgrade_buttons.update(take_info())
+            # upgrade_buttons.draw(data.screen)
+            # Health_button.draw(data.screen)
+            # Health_button.update(take_info())
+            # Reload_time_button.draw(data.screen)
+            # Reload_time_button.update(take_info())
+            # Bowled_count_button.draw(data.screen)
+            # Bowled_count_button.update(take_info())
+            # Damage_button.draw(data.screen)
+            # Damage_button.update(take_info())
+            # Count_upgrade_button.draw(data.screen)
+            # Count_upgrade_button.update(take_info())
             for i in upgrade_buttons:
                 i.draw(data.screen)
         all_sprites.update()
