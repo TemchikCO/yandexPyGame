@@ -15,7 +15,7 @@ from classes.Finish_window import Finish_window
 from classes.RanHero import RanHero
 from classes.Tree import Tree
 from classes.Imovablet import ImmovableLet
-from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites,\
+from data import all_sprites, trees, clouds, start_sprites, play_sprites, final_sprites, \
     lets, ground, upgrade_buttons, bowleds
 from classes.StartButton import start_button
 from classes.FinishButton import finish_button
@@ -41,23 +41,39 @@ class Generate:
         if self.total_ms >= 100000 / speed * 4:
             self.total_ms = 0
             if random.choice([True, True, False]):
-                lets.add(ImmovableLet(speed, random.choice([data.immovablelet, data.immovablelet_1])))
+                lets.add(ImmovableLet(speed, random.choice(data.immovablelets)))
             elif score > 10000 and random.choice([True, False]):
-                lets.add(Bird(random.choice([249, 279, 290]), speed))
+                data.birds.add(Bird(random.choice([249, 279, 290]), speed))
 
 
-def chek_lets(player, finish):
+def chek_lets(player, finish, music):
     for i in lets:
         if pygame.sprite.collide_mask(i, player):
             finish.finish = True
+            data.expl_sounds[0].play()
+            music.stop()
+    for bullet in bowleds:
+        for j in data.birds:
+            if pygame.sprite.collide_mask(j, bullet):
+                j.kill()
+        for i in lets:
+            if pygame.sprite.collide_mask(i, bullet):
+                print('ok')
 
 
 class Music:
-    pass
+    def __init__(self):
+        pygame.mixer.music.load(data.menu_music)
+        pygame.mixer.music.play(loops=-1)
+        pygame.mixer.music.set_volume(0.4)
 
+    def start(self):
+        pygame.mixer.music.load(random.choice(data.game_music))
+        pygame.mixer.music.play(loops=-1)
+        pygame.mixer.music.set_volume(0.4)
 
-class GameState:
-    pass
+    def stop(self):
+        pygame.mixer.music.stop()
 
 
 def main():
@@ -189,6 +205,7 @@ def main():
         return [record, money, heapify_line, damage_line, count_koef_line, max_bullet_count_line,
                 speed_of_reloading_line]
 
+    music = Music()
     upgrade = 1
     running = True
     while running:
@@ -211,16 +228,20 @@ def main():
                 Count_upgrade_button.check_click(event.pos)
                 if start_button.button_pressed:
                     spining_hero.kill()
+                    music.start()
             if event.type == pygame.MOUSEMOTION:
                 cursor.rect.topleft = event.pos
             if event.type == pygame.KEYDOWN:
                 if start_button.button_pressed:
                     if event.key == pygame.K_w or event.key == pygame.K_UP:
                         ran_hero.jump()
+                        if ran_hero.is_grounded():
+                            data.expl_sounds[3].play()
                     if event.key == pygame.K_SPACE:
                         if control.acept_fire:
                             Bowled(bowleds, data.image_bowled, ran_hero.rect.topleft[0], ran_hero.rect.topleft[1],
                                    ran_hero)
+                            data.expl_sounds[1].play()
                             control.bowlet_count += 1
                 if event.key == pygame.K_ESCAPE:
                     running = False
@@ -273,7 +294,7 @@ def main():
             health_count.update(time, take_info())
             health_count.draw(data.screen)
             ran_hero.set_move(horizontal)
-            chek_lets(ran_hero, finish_button)
+            chek_lets(ran_hero, finish_button, music)
             generate.do(time, game_speed, count.count)
             lets.update(time, game_speed)
             for i in lets:
