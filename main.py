@@ -42,38 +42,35 @@ class Generate:
             self.total_ms = 0
             if random.choice([True, True, False]):
                 lets.add(ImmovableLet(speed, random.choice(data.immovablelets)))
-            elif score > 10000 and random.choice([True, False]):
-                data.birds.add(Bird(random.choice([249, 279, 290]), speed))
+            elif score > 10 and random.choice([True, False]):
+                data.birds.add(Bird(random.choice([340, 249, ]), speed))
 
 
-def chek_lets(player, finish, music):
+def chek(i, player, finish):
+    if pygame.sprite.collide_mask(i, player):
+        finish.finish = True
+        data.sounds[0].play()
+        pygame.mixer.music.stop()
+
+
+def chek_lets(player, finish):
     for i in lets:
-        if pygame.sprite.collide_mask(i, player):
-            finish.finish = True
-            data.expl_sounds[0].play()
-            music.stop()
+        chek(i, player, finish)
+    for i in data.birds:
+        chek(i, player, finish)
+    to_kill = []
     for bullet in bowleds:
         for j in data.birds:
-            if pygame.sprite.collide_mask(j, bullet):
-                j.kill()
+            if pygame.sprite.collide_mask(bullet, j):
+                to_kill.append(j)
+                to_kill.append(bullet)
+                data.sounds[4].play()
+
         for i in lets:
-            if pygame.sprite.collide_mask(i, bullet):
-                print('ok')
-
-
-class Music:
-    def __init__(self):
-        pygame.mixer.music.load(data.menu_music)
-        pygame.mixer.music.play(loops=-1)
-        pygame.mixer.music.set_volume(0.4)
-
-    def start(self):
-        pygame.mixer.music.load(random.choice(data.game_music))
-        pygame.mixer.music.play(loops=-1)
-        pygame.mixer.music.set_volume(0.4)
-
-    def stop(self):
-        pygame.mixer.music.stop()
+            if bullet.rect.colliderect(i.rect):
+                to_kill.append(bullet)
+    for i in to_kill:
+        i.kill()
 
 
 def main():
@@ -131,6 +128,7 @@ def main():
     cursor.rect = cursor_image.get_rect()
 
     generate = Generate()
+    data.load_music(data.game_music[2])
 
     def take_info():
         file = open('information')
@@ -205,7 +203,6 @@ def main():
         return [record, money, heapify_line, damage_line, count_koef_line, max_bullet_count_line,
                 speed_of_reloading_line]
 
-    music = Music()
     upgrade = 1
     running = True
     while running:
@@ -228,7 +225,6 @@ def main():
                 Count_upgrade_button.check_click(event.pos)
                 if start_button.button_pressed:
                     spining_hero.kill()
-                    music.start()
             if event.type == pygame.MOUSEMOTION:
                 cursor.rect.topleft = event.pos
             if event.type == pygame.KEYDOWN:
@@ -236,12 +232,12 @@ def main():
                     if event.key == pygame.K_w or event.key == pygame.K_UP:
                         ran_hero.jump()
                         if ran_hero.is_grounded():
-                            data.expl_sounds[3].play()
+                            data.sounds[3].play()
                     if event.key == pygame.K_SPACE:
                         if control.acept_fire:
                             Bowled(bowleds, data.image_bowled, ran_hero.rect.topleft[0], ran_hero.rect.topleft[1],
                                    ran_hero)
-                            data.expl_sounds[1].play()
+                            data.sounds[1].play()
                             control.bowlet_count += 1
                 if event.key == pygame.K_ESCAPE:
                     running = False
@@ -294,12 +290,15 @@ def main():
             health_count.update(time, take_info())
             health_count.draw(data.screen)
             ran_hero.set_move(horizontal)
-            chek_lets(ran_hero, finish_button, music)
             generate.do(time, game_speed, count.count)
             lets.update(time, game_speed)
+            data.birds.update(time, game_speed)
+            for i in data.birds:
+                i.draw(data.screen)
             for i in lets:
                 i.draw(data.screen)
             ground.update(time, horizontal, ran_hero.down_flag)
+            chek_lets(ran_hero, finish_button)
         if finish_button.finish:
             ran_hero.speed = 0
             for sprite in start_sprites:
@@ -321,17 +320,17 @@ def main():
             cancel_upgrade_button.draw(data.screen)
             money_count.draw(data.screen, take_info())
             upgrade_buttons.update(take_info())
-            # upgrade_buttons.draw(data.screen)
-            # Health_button.draw(data.screen)
-            # Health_button.update(take_info())
-            # Reload_time_button.draw(data.screen)
-            # Reload_time_button.update(take_info())
-            # Bowled_count_button.draw(data.screen)
-            # Bowled_count_button.update(take_info())
-            # Damage_button.draw(data.screen)
-            # Damage_button.update(take_info())
-            # Count_upgrade_button.draw(data.screen)
-            # Count_upgrade_button.update(take_info())
+            upgrade_buttons.draw(data.screen)
+            Health_button.draw(data.screen)
+            Health_button.update(take_info())
+            Reload_time_button.draw(data.screen)
+            Reload_time_button.update(take_info())
+            Bowled_count_button.draw(data.screen)
+            Bowled_count_button.update(take_info())
+            Damage_button.draw(data.screen)
+            Damage_button.update(take_info())
+            Count_upgrade_button.draw(data.screen)
+            Count_upgrade_button.update(take_info())
             for i in upgrade_buttons:
                 i.draw(data.screen)
         all_sprites.update()
