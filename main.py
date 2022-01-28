@@ -122,6 +122,9 @@ def main():
     ran_hero = RanHero(all_sprites, image, 0, 370, 'raning_hero')
     ran_hero.add(play_sprites)
 
+    sky_image1 = data.load_image("sky.jpg")
+    sky_image = pygame.transform.scale(sky_image1, (1200, 700))
+
     cursor_image = data.load_image("arrow.png", -1)
     cursor = Sprite(all_sprites)
     cursor.image = cursor_image
@@ -215,7 +218,6 @@ def main():
                 create_particles(pygame.mouse.get_pos())
                 if cancel_upgrade_button.cancel_count == upgrade_button.update_count:
                     start_button.check_click(event.pos)
-                    finish_button.check_click(event.pos)
                     upgrade_button.check_click(event.pos)
                 cancel_upgrade_button.check_click(event.pos)
                 Health_button.check_click(event.pos)
@@ -246,7 +248,7 @@ def main():
                 all_sprites.draw(data.screen)
             else:
                 cursor.remove(all_sprites)
-        data.screen.fill((0, 255, 255))
+        data.screen.blit(sky_image, (0, 0))
         for start_sprite in start_sprites:
             start_sprite.draw(data.screen)
         all_sprites.draw(data.screen)
@@ -320,17 +322,6 @@ def main():
             cancel_upgrade_button.draw(data.screen)
             money_count.draw(data.screen, take_info())
             upgrade_buttons.update(take_info())
-            upgrade_buttons.draw(data.screen)
-            Health_button.draw(data.screen)
-            Health_button.update(take_info())
-            Reload_time_button.draw(data.screen)
-            Reload_time_button.update(take_info())
-            Bowled_count_button.draw(data.screen)
-            Bowled_count_button.update(take_info())
-            Damage_button.draw(data.screen)
-            Damage_button.update(take_info())
-            Count_upgrade_button.draw(data.screen)
-            Count_upgrade_button.update(take_info())
             for i in upgrade_buttons:
                 i.draw(data.screen)
         all_sprites.update()
